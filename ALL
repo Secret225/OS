@@ -1,0 +1,389 @@
+FCFS, SJF and PRIORITY
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#define MAX_PROCESSES 100
+typedef struct {
+int id;
+int burst_time;
+int priority;
+int arrival_time;
+int waiting_time;
+int turnaround_time;
+} Process;
+void calculate_fcfs(Process processes[], int n);
+void calculate_sjf(Process processes[], int n);
+void calculate_priority(Process processes[], int n);
+void swap(Process *a, Process *b) {
+Process temp = *a;
+*a = *b;
+*b = temp;
+}
+void print_results(Process processes[], int n) {
+printf("Process ID\tBurst Time\tArrival Time\tWaiting Time\tTurnaround Time\n");
+for (int i = 0; i < n; i++) {
+printf("%d\t\t%d\t\t%d\t\t%d\t\t%d\n", processes[i].id, processes[i].burst_time,
+processes[i].arrival_time, processes[i].waiting_time, processes[i].turnaround_time);
+}
+}
+int main() {
+int n;
+Process processes[MAX_PROCESSES];
+printf("Enter the number of processes: ");
+scanf("%d", &n);
+printf("Enter the arrival times and burst times for each process:\n");
+for (int i = 0; i < n; i++) {
+processes[i].id = i + 1;
+printf("Process %d:\n", i + 1);
+printf("Arrival Time: ");
+scanf("%d", &processes[i].arrival_time);
+printf("Burst Time: ");
+scanf("%d", &processes[i].burst_time);
+processes[i].priority = 0;
+}
+printf("\nFCFS Scheduling:\n");
+calculate_fcfs(processes, n);
+print_results(processes, n);
+printf("\nSJF Scheduling:\n");
+for (int i = 0; i < n; i++) {
+processes[i].waiting_time = 0;
+processes[i].turnaround_time = 0;
+}
+calculate_sjf(processes, n);
+print_results(processes, n);
+printf("\nPriority Scheduling:\n");
+printf("Enter the priorities for each process:\n");
+for (int i = 0; i < n; i++) {
+printf("Process %d:\n", i + 1);
+printf("Priority: ");
+scanf("%d", &processes[i].priority);
+}
+for (int i = 0; i < n; i++) {
+processes[i].waiting_time = 0;
+processes[i].turnaround_time = 0;
+}
+calculate_priority(processes, n);
+print_results(processes, n);
+return 0;
+}
+void calculate_fcfs(Process processes[], int n) {
+int time = 0;
+for (int i = 0; i < n; i++) {
+if (time < processes[i].arrival_time) {
+time = processes[i].arrival_time;
+}
+processes[i].waiting_time = time - processes[i].arrival_time;
+processes[i].turnaround_time = processes[i].waiting_time + processes[i].burst_time;
+time += processes[i].burst_time;
+}
+}
+void calculate_sjf(Process processes[], int n) {
+for (int i = 0; i < n - 1; i++) {
+for (int j = i + 1; j < n; j++) {
+if (processes[i].burst_time > processes[j].burst_time) {
+swap(&processes[i], &processes[j]);
+}
+}
+}
+int time = 0;
+for (int i = 0; i < n; i++) {
+if (time < processes[i].arrival_time) {
+time = processes[i].arrival_time;
+}
+processes[i].waiting_time = time - processes[i].arrival_time;
+processes[i].turnaround_time = processes[i].waiting_time + processes[i].burst_time;
+time += processes[i].burst_time;
+}
+}
+void calculate_priority(Process processes[], int n) {
+for (int i = 0; i < n - 1; i++) {
+for (int j = i + 1; j < n; j++) {
+if (processes[i].priority < processes[j].priority) {
+swap(&processes[i], &processes[j]);
+} else if (processes[i].priority == processes[j].priority) {
+if (processes[i].arrival_time > processes[j].arrival_time) {
+swap(&processes[i], &processes[j]);
+}
+}
+}
+}
+int time = 0;
+for (int i = 0; i < n; i++) {
+if (time < processes[i].arrival_time) {
+time = processes[i].arrival_time;
+}
+processes[i].waiting_time = time - processes[i].arrival_time;
+processes[i].turnaround_time = processes[i].waiting_time + processes[i].burst_time;
+time += processes[i].burst_time;
+}
+}
+
+
+MULTILEVEL QUEUE
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define MAX 10
+typedef struct {
+int pid;
+int arrivalTime;
+int burstTime;
+int waitingTime;
+int turnAroundTime;
+} Process;
+void calculateTimes(Process queue[], int n) {
+int waitingTime = 0;
+int turnAroundTime = 0;
+for (int i = 0; i < n; i++) {
+if (i == 0) {
+queue[i].waitingTime = 0;
+} else {
+queue[i].waitingTime = queue[i - 1].waitingTime + queue[i - 1].burstTime;
+}
+queue[i].turnAroundTime = queue[i].waitingTime + queue[i].burstTime;
+waitingTime += queue[i].waitingTime;
+turnAroundTime += queue[i].turnAroundTime;
+}
+printf("Average Waiting Time: %.2f\n", (float)waitingTime / n);
+printf("Average Turnaround Time: %.2f\n", (float)turnAroundTime / n);
+}
+void printQueue(Process queue[], int n, const char* queueName) {
+printf("\n%s:\n", queueName);
+printf("PID\tArrival Time\tBurst Time\tWaiting Time\tTurnaround Time\n");
+for (int i = 0; i < n; i++) {
+printf("%d\t%d\t\t%d\t\t%d\t\t%d\n",
+queue[i].pid,
+queue[i].arrivalTime,
+queue[i].burstTime,
+queue[i].waitingTime,
+queue[i].turnAroundTime);
+}
+}
+int main() {
+int numberSystem, numberUser;
+Process systemQueue[MAX], userQueue[MAX];
+printf("Enter number of system processes: ");
+scanf("%d", &numberSystem);
+for (int i = 0; i < numberSystem; i++) {
+printf("Enter PID, Arrival Time and Burst Time for System Process %d: ", i + 1);
+scanf("%d %d %d", &systemQueue[i].pid, &systemQueue[i].arrivalTime,
+&systemQueue[i].burstTime);
+}
+printf("Enter number of user processes: ");
+scanf("%d", &numberUser);
+for (int i = 0; i < numberUser; i++) {
+printf("Enter PID, Arrival Time and Burst Time for User Process %d: ", i + 1);
+scanf("%d %d %d", &userQueue[i].pid, &userQueue[i].arrivalTime,
+&userQueue[i].burstTime);
+}
+// system queue scheduling, based on FCFS
+for (int i = 0; i < numberSystem - 1; i++) {
+for (int j = i + 1; j < numberSystem; j++) {
+if (systemQueue[i].arrivalTime > systemQueue[j].arrivalTime) {
+Process temp = systemQueue[i];
+systemQueue[i] = systemQueue[j];
+systemQueue[j] = temp;
+}
+}
+}
+// user queue scheduling, based on FCFS
+for (int i = 0; i < numberUser - 1; i++) {
+for (int j = i + 1; j < numberUser; j++) {
+if (userQueue[i].arrivalTime > userQueue[j].arrivalTime) {
+Process temp = userQueue[i];
+userQueue[i] = userQueue[j];
+userQueue[j] = temp;
+}
+}
+}
+calculateTimes(systemQueue, numberSystem);
+calculateTimes(userQueue, numberUser);
+printQueue(systemQueue, numberSystem, "System Queue");
+printQueue(userQueue, numberUser, "User Queue");
+return 0;
+}
+
+MFT AND MVT
+
+#include <stdio.h>
+void mft() {
+int totalMemory, blockSize, numBlocks, numProcesses;
+int internalFragmentation = 0, externalFragmentation = 0;
+int memoryRequired[10], allocated[10] = {0};
+printf("Enter the total memory available (in Bytes): ");
+scanf("%d", &totalMemory);
+printf("Enter the block size (in Bytes): ");
+scanf("%d", &blockSize);
+printf("Enter the number of processes: ");
+scanf("%d", &numProcesses);
+numBlocks = totalMemory / blockSize;
+externalFragmentation = totalMemory - (numBlocks * blockSize);
+printf("No. of Blocks available in memory: %d\n", numBlocks);
+for (int i = 0; i < numProcesses; i++) {
+printf("Enter memory required for process %d (in Bytes): ", i + 1);
+scanf("%d", &memoryRequired[i]);
+}
+printf("\nPROCESS\tMEMORY REQUIRED\tALLOCATED\tINTERNAL FRAGMENTATION\n");
+for (int i = 0; i < numProcesses; i++) {
+if (memoryRequired[i] <= blockSize && numBlocks > 0) {
+allocated[i] = 1;
+numBlocks--;
+int frag = blockSize - memoryRequired[i];
+internalFragmentation += frag;
+printf("%d\t%d\t\tYES\t\t%d\n", i + 1, memoryRequired[i], frag);
+} else {
+printf("%d\t%d\t\tNO\t\t---\n", i + 1, memoryRequired[i]);
+}
+}
+printf("\nMemory is full; the remaining processes cannot be accommodated.\n");
+printf("Total internal fragmentation is %d.\n", internalFragmentation);
+printf("Total external fragmentation is %d.\n", externalFragmentation);
+}
+int main() {
+mft();
+return 0;
+}
+
+#include <stdio.h>
+void mvt() {
+int totalMemory, memoryAllocated = 0;
+int memoryRequired[10], processAllocated[10] = {0};
+int processCount = 0;
+char choice;
+printf("Enter the total memory available (in Bytes): ");
+scanf("%d", &totalMemory);
+int availableMemory = totalMemory;
+printf("\n");
+do {
+printf("Enter the memory required for process %d (in Bytes): ", processCount + 1);
+scanf("%d", &memoryRequired[processCount]);
+if (memoryRequired[processCount] <= availableMemory) {
+printf("Memory is allocated for Process %d.\n", processCount + 1);
+memoryAllocated += memoryRequired[processCount];
+availableMemory -= memoryRequired[processCount];
+processAllocated[processCount] = 1; // Mark process as allocated
+processCount++;
+} else {
+printf("Memory is Full\n");
+break;
+}
+printf("Do you want to continue (y/n)? ");
+scanf(" %c", &choice);
+} while (choice == 'y' || choice == 'Y');
+// Print the memory allocation table
+printf("\nPROCESS\tMEMORY ALLOCATED\n");
+for (int i = 0; i < processCount; i++) {
+if (processAllocated[i] == 1) {
+printf("%d\t%d\n", i + 1, memoryRequired[i]);
+}
+}
+printf("\nTotal Memory Available: %d\n", totalMemory);
+printf("Total Memory Allocated: %d\n", memoryAllocated);
+printf("Total External Fragmentation: %d\n", availableMemory);
+}
+int main() {
+mvt();
+return 0;
+}
+
+BANKERS ALGO
+
+#include <stdio.h>
+#include <stdbool.h>
+#define MAX
+void printTable(int processes, int avail[], int max[][MAX], int alloc[][MAX], int need[][MAX]) {
+printf("\nProcess\t\tMax\t\t\tAllocated\t\tNeed\n");
+printf("-------------------------------------------------------------------------------
+-\n");
+for (int i = 0; i < processes; i++) {
+printf("P%d\t\t", i);
+for (int j = 0; j < MAX; j++) {
+printf("%d ", max[i][j]);
+}
+printf("\t\t");
+for (int j = 0; j < MAX; j++) {
+printf("%d ", alloc[i][j]);
+}
+printf("\t\t");
+for (int j = 0; j < MAX; j++) {
+printf("%d ", need[i][j]);
+}
+printf("\n");
+}
+printf("\nAvailable Resources: ");
+for (int i = 0; i < MAX; i++) {
+printf("%d ", avail[i]);
+}
+printf("\n");
+}
+bool isSafeState(int processes, int avail[], int max[][MAX], int alloc[][MAX], int need[][MAX]) {
+int work[MAX];
+bool finish[MAX] = {false
+int safeSequence[MAX];
+int count = 0;
+for (int i = 0; i < MAX; i++)
+work[i] = avail[i];
+while (count < processes) {
+bool found = false;
+for (int p = 0; p < processes; p++) {
+if (!finish[p])
+bool canAllocate = true;
+for (int r = 0; r < MAX; r++) {
+if (need[p][r] > work[r]) {
+canAllocate = false;
+break;
+}
+}
+if (canAllocate) {
+for (int r = 0; r < MAX; r++)
+work[r] += alloc[p][r];
+safeSequence[count++] = p;
+finish[p] = tru
+found = true;
+}
+}
+}
+if (!found) {
+printf("System is not in a safe state.\n");
+return false;
+}
+}
+printf("System is in a safe state.\nSafe sequence is: ");
+for (int i = 0; i < processes; i++)
+printf("%d ", safeSequence[i]);
+printf("\n");
+return true;
+}
+void bankersAlgorithm(int processes, int avail[], int max[][MAX], int alloc[][MAX]) {
+int need[MAX][MAX];
+for (int i = 0; i < processes; i++) {
+for (int j = 0; j < MAX; j++) {
+need[i][j] = max[i][j] - alloc[i][j];
+}
+}
+printTable(processes, avail, max, alloc, need);
+isSafeState(processes, avail, max, alloc, need);
+}
+int main() {
+int processes = 5; // Number of processes
+int resources = 3; // Number of resources
+int avail[MAX] = {3, 3, 2};
+int max[MAX][MAX] = {
+{7, 5, 3},
+{3, 2, 2},
+{9, 0, 2},
+{2, 2, 2},
+{4, 3, 3}
+};
+int alloc[MAX][MAX] = {
+{0, 1, 0},
+{2, 0, 0},
+{3, 0, 2},
+{2, 1, 1},
+{0, 0, 2}
+};
+bankersAlgorithm(processes, avail, max, alloc);
+return 0;
+}
